@@ -1,0 +1,294 @@
+{
+  "scanner": "azure_security_audit",
+  "version": "1.0.0",
+  "generated": "2026-03-31T14:22:08",
+  "findings_count": 31,
+  "summary": {
+    "CRITICAL": 5,
+    "HIGH": 11,
+    "MEDIUM": 9,
+    "LOW": 4,
+    "INFO": 2
+  },
+  "findings": [
+    {
+      "rule_id": "AZ-IAM-001",
+      "name": "Subscription has excessive Owner role assignments",
+      "category": "IAM & RBAC",
+      "severity": "CRITICAL",
+      "description": "12 principals hold the Owner role at subscription scope. Excessive Owner assignments increase the blast radius of a compromised identity and violate least-privilege.",
+      "recommendation": "Reduce Owner role assignments to 3 or fewer. Use Contributor or custom roles with scoped permissions. Enable PIM for just-in-time elevation.",
+      "cwe": "CWE-250"
+    },
+    {
+      "rule_id": "AZ-IAM-002",
+      "name": "Custom RBAC role with wildcard action permissions",
+      "category": "IAM & RBAC",
+      "severity": "HIGH",
+      "description": "Custom role 'DevOps-FullAccess' includes action '*/write' which grants write access to all resource types, effectively replicating Contributor privileges.",
+      "recommendation": "Replace wildcard actions with specific resource provider actions. Review and narrow the custom role definition.",
+      "cwe": "CWE-269"
+    },
+    {
+      "rule_id": "AZ-IAM-003",
+      "name": "Guest users with elevated roles in Azure AD",
+      "category": "IAM & RBAC",
+      "severity": "HIGH",
+      "description": "4 guest users have been assigned Contributor or higher roles. Guest accounts from external tenants with elevated privileges pose a lateral movement risk.",
+      "recommendation": "Review guest user role assignments. Restrict guest access to specific resource groups. Implement access reviews for guest accounts.",
+      "cwe": "CWE-284"
+    },
+    {
+      "rule_id": "AZ-IAM-004",
+      "name": "Multi-factor authentication not enforced for all administrators",
+      "category": "IAM & RBAC",
+      "severity": "CRITICAL",
+      "description": "Conditional Access policies do not enforce MFA for all users with administrative roles. 3 Global Administrators and 5 Privileged Role Administrators lack MFA enforcement.",
+      "recommendation": "Create a Conditional Access policy requiring MFA for all directory roles. Enable Security Defaults or configure per-user MFA for all admins.",
+      "cwe": "CWE-308"
+    },
+    {
+      "rule_id": "AZ-NSG-001",
+      "name": "Network Security Group allows unrestricted SSH access",
+      "category": "Network Security Groups",
+      "severity": "CRITICAL",
+      "description": "NSG 'prod-backend-nsg' has inbound rule allowing TCP/22 from source 0.0.0.0/0. Unrestricted SSH access exposes VMs to brute-force and credential-stuffing attacks.",
+      "recommendation": "Restrict SSH access to known management IP ranges or use Azure Bastion for secure VM access. Remove the 0.0.0.0/0 source rule.",
+      "cwe": "CWE-284"
+    },
+    {
+      "rule_id": "AZ-NSG-002",
+      "name": "Network Security Group allows unrestricted RDP access",
+      "category": "Network Security Groups",
+      "severity": "CRITICAL",
+      "description": "NSG 'windows-mgmt-nsg' has inbound rule allowing TCP/3389 from source 0.0.0.0/0. Publicly exposed RDP is the top vector for ransomware initial access.",
+      "recommendation": "Remove the public RDP rule. Use Azure Bastion or a VPN gateway. If RDP is required, restrict to specific IP addresses with NSG rules.",
+      "cwe": "CWE-284"
+    },
+    {
+      "rule_id": "AZ-NSG-003",
+      "name": "Network Security Group has overly permissive outbound rules",
+      "category": "Network Security Groups",
+      "severity": "MEDIUM",
+      "description": "NSG 'app-tier-nsg' allows all outbound traffic on all ports (0.0.0.0/0:*). This enables unrestricted data exfiltration and command-and-control communications.",
+      "recommendation": "Implement egress filtering. Define explicit outbound rules allowing only required destinations and ports. Deny all other outbound traffic.",
+      "cwe": "CWE-668"
+    },
+    {
+      "rule_id": "AZ-STR-001",
+      "name": "Storage account allows public blob access",
+      "category": "Storage Accounts",
+      "severity": "HIGH",
+      "description": "Storage account 'proddata2024sa' has AllowBlobPublicAccess set to true. Containers configured with public access can expose sensitive data to the internet.",
+      "recommendation": "Set AllowBlobPublicAccess to false at the storage account level. Use SAS tokens or Azure AD authentication for authorized access.",
+      "cwe": "CWE-668"
+    },
+    {
+      "rule_id": "AZ-STR-002",
+      "name": "Storage account not using customer-managed encryption keys",
+      "category": "Storage Accounts",
+      "severity": "MEDIUM",
+      "description": "Storage account 'hrfilestorage' uses Microsoft-managed keys for encryption. Customer-managed keys (CMK) in Key Vault provide greater control over key lifecycle.",
+      "recommendation": "Enable customer-managed keys using Azure Key Vault. Configure automatic key rotation with a 90-day rotation policy.",
+      "cwe": "CWE-311"
+    },
+    {
+      "rule_id": "AZ-STR-003",
+      "name": "Storage account allows access from all networks",
+      "category": "Storage Accounts",
+      "severity": "HIGH",
+      "description": "Storage account 'logsarchivesa' has network rules set to 'Allow' from all networks. Any public IP can attempt to access the storage endpoints.",
+      "recommendation": "Configure storage firewall rules to allow access only from specific VNets and IP ranges. Use private endpoints for production workloads.",
+      "cwe": "CWE-284"
+    },
+    {
+      "rule_id": "AZ-KV-001",
+      "name": "Key Vault soft delete not enabled",
+      "category": "Key Vault",
+      "severity": "HIGH",
+      "description": "Key Vault 'app-secrets-kv' does not have soft delete enabled. Accidental or malicious deletion of secrets/keys results in permanent data loss.",
+      "recommendation": "Enable soft delete and purge protection on all Key Vaults. Set the retention period to at least 90 days.",
+      "cwe": "CWE-404"
+    },
+    {
+      "rule_id": "AZ-KV-002",
+      "name": "Key Vault secrets without expiration dates",
+      "category": "Key Vault",
+      "severity": "MEDIUM",
+      "description": "17 secrets in Key Vault 'app-secrets-kv' have no expiration date set. Long-lived secrets increase the window of exposure if compromised.",
+      "recommendation": "Set expiration dates on all secrets. Implement automated rotation using Azure Key Vault rotation policies or Azure Functions.",
+      "cwe": "CWE-324"
+    },
+    {
+      "rule_id": "AZ-KV-003",
+      "name": "Key Vault access not restricted to private endpoints",
+      "category": "Key Vault",
+      "severity": "HIGH",
+      "description": "Key Vault 'prod-credentials-kv' is accessible via public endpoint. Public access to credential stores expands the attack surface.",
+      "recommendation": "Disable public network access. Configure private endpoints for Key Vault access. Ensure DNS resolution routes to the private IP.",
+      "cwe": "CWE-668"
+    },
+    {
+      "rule_id": "AZ-SQL-001",
+      "name": "Azure SQL Server allows connections from all Azure services",
+      "category": "SQL Database",
+      "severity": "HIGH",
+      "description": "SQL Server 'prod-sql-server' has 'Allow Azure services and resources to access this server' enabled. This permits any Azure-hosted service to connect.",
+      "recommendation": "Disable the 'Allow Azure services' firewall rule. Use VNet service endpoints or private endpoints for application connectivity.",
+      "cwe": "CWE-284"
+    },
+    {
+      "rule_id": "AZ-SQL-002",
+      "name": "Azure SQL Database transparent data encryption using service-managed keys",
+      "category": "SQL Database",
+      "severity": "MEDIUM",
+      "description": "SQL Database 'customer-db' uses service-managed TDE keys. Customer-managed keys provide control over the encryption key lifecycle.",
+      "recommendation": "Configure TDE with customer-managed keys stored in Azure Key Vault. Enable automatic key rotation.",
+      "cwe": "CWE-311"
+    },
+    {
+      "rule_id": "AZ-SQL-003",
+      "name": "SQL auditing not enabled",
+      "category": "SQL Database",
+      "severity": "HIGH",
+      "description": "SQL Server 'staging-sql-server' does not have auditing enabled. Without auditing, security-relevant database events go unrecorded.",
+      "recommendation": "Enable SQL auditing and direct audit logs to a storage account or Log Analytics workspace. Set retention to at least 90 days.",
+      "cwe": "CWE-778"
+    },
+    {
+      "rule_id": "AZ-APP-001",
+      "name": "App Service does not enforce HTTPS only",
+      "category": "App Service",
+      "severity": "HIGH",
+      "description": "App Service 'api-gateway-app' accepts HTTP connections. Unencrypted HTTP traffic exposes authentication tokens and sensitive data in transit.",
+      "recommendation": "Enable 'HTTPS Only' on the App Service. Configure HTTP to HTTPS redirection at the application level.",
+      "cwe": "CWE-319"
+    },
+    {
+      "rule_id": "AZ-APP-002",
+      "name": "App Service using outdated TLS version",
+      "category": "App Service",
+      "severity": "MEDIUM",
+      "description": "App Service 'legacy-portal-app' allows TLS 1.0 and TLS 1.1 connections. These protocols have known vulnerabilities including POODLE and BEAST.",
+      "recommendation": "Set minimum TLS version to 1.2 on all App Services. Test client compatibility before enforcement.",
+      "cwe": "CWE-326"
+    },
+    {
+      "rule_id": "AZ-APP-003",
+      "name": "App Service managed identity not configured",
+      "category": "App Service",
+      "severity": "MEDIUM",
+      "description": "App Service 'data-processor-app' does not use a managed identity. Application secrets stored in code or configuration are vulnerable to exposure.",
+      "recommendation": "Enable system-assigned or user-assigned managed identity. Use the identity to authenticate to Azure resources without storing credentials.",
+      "cwe": "CWE-798"
+    },
+    {
+      "rule_id": "AZ-AKS-001",
+      "name": "AKS cluster running without Azure Policy add-on",
+      "category": "Azure Kubernetes Service",
+      "severity": "MEDIUM",
+      "description": "AKS cluster 'prod-aks-cluster' does not have the Azure Policy add-on enabled. Without policy enforcement, workloads can run with elevated privileges.",
+      "recommendation": "Enable the Azure Policy add-on for AKS. Apply built-in policies for pod security, network policies, and resource limits.",
+      "cwe": "CWE-269"
+    },
+    {
+      "rule_id": "AZ-AKS-002",
+      "name": "AKS cluster API server accessible from public internet",
+      "category": "Azure Kubernetes Service",
+      "severity": "CRITICAL",
+      "description": "AKS cluster 'prod-aks-cluster' has a public API server endpoint with no authorized IP ranges configured. The Kubernetes API is accessible from any IP.",
+      "recommendation": "Configure authorized IP ranges for the AKS API server. For maximum security, deploy a private AKS cluster.",
+      "cwe": "CWE-284"
+    },
+    {
+      "rule_id": "AZ-MON-001",
+      "name": "Activity Log alerts not configured for critical operations",
+      "category": "Monitor & Logging",
+      "severity": "HIGH",
+      "description": "No Activity Log alerts are configured for security-critical operations such as policy assignment changes, NSG modifications, or Key Vault access policy changes.",
+      "recommendation": "Create Activity Log alerts for: policy assignment changes, NSG rule modifications, Key Vault access policy updates, and role assignment changes.",
+      "cwe": "CWE-778"
+    },
+    {
+      "rule_id": "AZ-MON-002",
+      "name": "Diagnostic settings not enabled for all subscriptions",
+      "category": "Monitor & Logging",
+      "severity": "MEDIUM",
+      "description": "2 of 4 subscriptions do not have diagnostic settings configured. Activity logs from these subscriptions are not forwarded to a central Log Analytics workspace.",
+      "recommendation": "Enable diagnostic settings on all subscriptions. Forward Activity Logs to a central Log Analytics workspace for SIEM integration.",
+      "cwe": "CWE-778"
+    },
+    {
+      "rule_id": "AZ-MDC-001",
+      "name": "Microsoft Defender for Cloud not enabled on all resource types",
+      "category": "Defender for Cloud",
+      "severity": "HIGH",
+      "description": "Defender plans are disabled for: Key Vaults, DNS, Resource Manager, and Storage. These resources lack advanced threat detection and security alerts.",
+      "recommendation": "Enable Defender for Cloud plans on all resource types. At minimum enable for Servers, SQL, Storage, Key Vault, and Containers.",
+      "cwe": "CWE-693"
+    },
+    {
+      "rule_id": "AZ-MDC-002",
+      "name": "Security contacts not configured for Defender alerts",
+      "category": "Defender for Cloud",
+      "severity": "MEDIUM",
+      "description": "No email addresses or phone numbers are configured for Defender for Cloud security alert notifications. Critical alerts may go unnoticed.",
+      "recommendation": "Configure security contact email addresses and enable notification for high-severity alerts. Add a security distribution list.",
+      "cwe": "CWE-778"
+    },
+    {
+      "rule_id": "AZ-NET-001",
+      "name": "Virtual Network without DDoS Protection",
+      "category": "Network Security",
+      "severity": "LOW",
+      "description": "VNet 'prod-vnet' does not have Azure DDoS Protection Standard enabled. Basic DDoS protection may be insufficient for production workloads.",
+      "recommendation": "Enable Azure DDoS Protection Standard on production VNets. Configure DDoS alerts and telemetry.",
+      "cwe": "CWE-400"
+    },
+    {
+      "rule_id": "AZ-NET-002",
+      "name": "No Network Watcher flow logs configured",
+      "category": "Network Security",
+      "severity": "LOW",
+      "description": "NSG flow logs are not enabled for 6 NSGs in the production resource group. Network traffic analysis and forensics capabilities are limited.",
+      "recommendation": "Enable NSG flow logs for all production NSGs. Configure Traffic Analytics for enhanced visibility. Set log retention to 90 days.",
+      "cwe": "CWE-778"
+    },
+    {
+      "rule_id": "AZ-STR-004",
+      "name": "Storage account secure transfer not enforced",
+      "category": "Storage Accounts",
+      "severity": "LOW",
+      "description": "Storage account 'devtestfiles' does not enforce secure transfer (HTTPS). Data in transit could be intercepted via unencrypted HTTP connections.",
+      "recommendation": "Enable 'Secure transfer required' on all storage accounts to enforce HTTPS for all REST API operations.",
+      "cwe": "CWE-319"
+    },
+    {
+      "rule_id": "AZ-IAM-005",
+      "name": "No Privileged Identity Management configured for eligible roles",
+      "category": "IAM & RBAC",
+      "severity": "LOW",
+      "description": "Azure AD PIM is not configured for eligible role assignments. All privileged role assignments are permanent rather than time-bound.",
+      "recommendation": "Configure Azure AD PIM for just-in-time role activation. Set maximum activation duration to 8 hours. Require approval for critical roles.",
+      "cwe": "CWE-269"
+    },
+    {
+      "rule_id": "AZ-INFO-001",
+      "name": "Azure Security Benchmark compliance score below 70%",
+      "category": "Compliance",
+      "severity": "INFO",
+      "description": "Current Azure Security Benchmark compliance score is 58%. 34 recommendations are outstanding across compute, networking, and identity controls.",
+      "recommendation": "Review and remediate outstanding Azure Security Benchmark recommendations. Prioritize critical and high-severity items first.",
+      "cwe": "CWE-693"
+    },
+    {
+      "rule_id": "AZ-INFO-002",
+      "name": "Resource locks not applied to critical resources",
+      "category": "Compliance",
+      "severity": "INFO",
+      "description": "Production resource groups and critical resources (SQL servers, Key Vaults) do not have CanNotDelete or ReadOnly locks. Accidental deletion is possible.",
+      "recommendation": "Apply CanNotDelete locks to production resource groups and critical resources. Use ReadOnly locks for immutable infrastructure.",
+      "cwe": "CWE-693"
+    }
+  ]
+}
